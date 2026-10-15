@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Әдебиет Бот — Мазмұн мен Пішін</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #131b2e;
+      --panel-bg: rgba(22, 30, 49, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+      --user-bubble: linear-gradient(135deg, #4f46e5, #7c3aed);
+      --bot-bubble: #1e293b;
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      --highlight: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 10% 20%, #171d36 0%, #080b12 90%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+      color: var(--text-primary);
+    }
+
+    .chat-wrapper {
+      width: 100%;
+      max-width: 950px;
+      height: 92vh;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+    }
+
+    /* Top Navigation / Header */
+    .chat-header {
+      padding: 16px 24px;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .bot-profile {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .bot-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 18px rgba(99, 102, 241, 0.35);
+    }
+
+    .bot-meta h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .bot-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .header-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Chat Messages Box */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 82%;
+      animation: slideIn 0.22s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .msg-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .message.bot .msg-icon {
+      background: #334155;
+    }
+    .message.user .msg-icon {
+      background: #4338ca;
+    }
+
+    .msg-body {
+      padding: 16px 20px;
+      border-radius: 20px;
+      font-size: 0.96rem;
+      line-height: 1.6;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .message.bot .msg-body {
+      background: var(--bot-bubble);
+      border: 1px solid var(--card-border);
+      border-top-left-radius: 4px;
+      color: #f1f5f9;
+    }
+
+    .message.user .msg-body {
+      background: var(--user-bubble);
+      border-top-right-radius: 4px;
+      color: #ffffff;
+    }
+
+    .msg-time {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 8px;
+      display: block;
+      text-align: right;
+    }
+
+    .copy-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      color: #a5b4fc;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .copy-pill:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #fff;
+    }
+
+    /* Typing Dots */
+    .typing-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 20px;
+      background: var(--bot-bubble);
+      border-radius: 20px;
+      border-top-left-radius: 4px;
+      border: 1px solid var(--card-border);
+      width: fit-content;
+      margin-left: 48px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #818cf8;
+      border-radius: 50%;
+      animation: pulse 1.3s infinite ease-in-out;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.3; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    /* Interactive Questions Carousel/Panel */
+    .questions-drawer {
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid var(--card-border);
+      padding: 14px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .drawer-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .questions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 8px;
+      max-height: 155px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .questions-grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .questions-grid::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .question-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.35;
+    }
+
+    .question-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .question-btn:active {
+      transform: translateY(0);
+    }
+
+    .q-badge {
+      background: var(--accent-gradient);
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Bottom Input Bar */
+    .input-row {
+      padding: 14px 22px;
+      background: rgba(11, 15, 25, 0.98);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .chat-field {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 13px 18px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .chat-field:focus {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    .chat-field::placeholder {
+      color: #64748b;
+    }
+
+    .send-action {
+      background: var(--accent-gradient);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 22px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .send-action:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 0;
+      }
+      .chat-wrapper {
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+      .questions-grid {
+        grid-template-columns: 1fr;
+        max-height: 130px;
+      }
+      .message {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-wrapper">
+    <!-- Header -->
+    <header class="chat-header">
+      <div class="bot-profile">
+        <div class="bot-avatar">📚</div>
+        <div class="bot-meta">
+          <h1>Әдебиет Бот: Мазмұн мен Пішін</h1>
+          <div class="bot-status">
+            <span class="live-dot"></span> Бот белсенді • 14 сұрақ-жауап
+          </div>
+        </div>
+      </div>
+      <div class="header-btns">
+        <button class="action-btn" onclick="resetChat()" title="Чатты қайта бастау">
+          🔄 Тазарту
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Messages -->
+    <main class="chat-messages" id="chatArea">
+      <div class="message bot">
+        <div class="msg-icon">🤖</div>
+        <div class="msg-body">
+          <strong>Сәлеметсіз бе! 👋</strong><br><br>
+          Мен әдебиет теориясының <strong>«Мазмұн мен пішін»</strong> тақырыбы бойынша арнайы жасақталған кеңесші ботпын.<br><br>
+          Төмендегі <strong>дайын сұрақтардың кез келгенін шертіңіз</strong> немесе іздеу жолағына сұрағыңызды жазыңыз. Мен сізге нақты жауап беремін!
+          <span class="msg-time" id="initTime"></span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Typing Indicator -->
+    <div id="typingIndicator" style="display: none;" class="typing-box">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <!-- Questions Drawer (Buttons list) -->
+    <section class="questions-drawer">
+      <div class="drawer-top">
+        <span class="drawer-title">📌 Сұрақты таңдаңыз (басыңыз):</span>
+        <span style="font-size: 0.76rem; color: #64748b;">14 сұрақ</span>
+      </div>
+      <div class="questions-grid" id="questionsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Input Form -->
+    <form class="input-row" id="chatForm" onsubmit="handleFormSubmit(event)">
+      <input 
+        type="text" 
+        id="userInput" 
+        class="chat-field" 
+        placeholder="Сұрақты немесе кілт сөзді жазыңыз (мысалы: 8, Фемида, мазмұн)..." 
+        autocomplete="off"
+      />
+      <button type="submit" class="send-action">
+        <span>Жіберу</span> 🚀
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // 14 сұрақ пен жауап қоры
+    const qaList = [
+      {
+        id: 1,
+        question: "1. Әдеби шығармадағы мазмұн дегеніміз не?",
+        answer: "Мазмұн — шығармада бейнеленген оқиғалар, кейіпкерлер, тақырып пен идея, сондай-ақ автордың көзқарасы мен бағалауының жиынтығы.",
+        keywords: ["мазмұн", "1"]
+      },
+      {
+        id: 2,
+        question: "2. Пішін дегеніміз не?",
+        answer: "Пішін — шығарма мазмұнының көркемдік тұрғыдан берілу жолы. Оған сюжет, кейіпкерлер бейнесі, тіл және басқа да көркемдік құралдар жатады.",
+        keywords: ["пішін", "2"]
+      },
+      {
+        id: 3,
+        question: "3. Мазмұн мен пішін қандай сұрақтарға жауап береді?",
+        answer: "Мазмұн — «Шығармада не айтылды?», ал пішін — «Ол қалай айтылды?» деген сұрақтарға жауап береді.",
+        keywords: ["қандай сұрақтарға", "не айтылды", "қалай айтылды", "3"]
+      },
+      {
+        id: 4,
+        question: "4. Әдеби шығарма мазмұны қалай қалыптасады?",
+        answer: "Қаламгердің өмір құбылыстарын бейнелеуі, оқиғаларды баяндауы, маңызды құбылыстарды іріктеуі және оларға авторлық баға беруі арқылы қалыптасады.",
+        keywords: ["қалай қалыптасады", "қалыптасу", "4"]
+      },
+      {
+        id: 5,
+        question: "5. Бейнелеуші және баяндаушы бастаулар дегеніміз не?",
+        answer: "Бейнелеуші бастау өмір құбылыстары мен кейіпкерлерді көрсетеді, ал баяндаушы бастау оқиғаларды жеткізіп, авторлық ой мен көзқарастың ашылуына көмектеседі.",
+        keywords: ["бейнелеуші", "баяндаушы", "бастаулар", "5"]
+      },
+      {
+        id: 6,
+        question: "6. Неліктен мазмұн мен пішінді бөліп қарауға болмайды?",
+        answer: "Өйткені мазмұн пішін арқылы көрініс табады, ал пішін мазмұнды жеткізеді. Екеуі бірігіп, шығарманың көркемдік тұтастығын қалыптастырады.",
+        keywords: ["бөліп қарастыруға болмайды", "бөлуге", "тұтастық", "6"]
+      },
+      {
+        id: 7,
+        question: "7. Автордың субъективті көзқарасы қалай әсер етеді?",
+        answer: "Автордың көзқарасы оқиғаларды іріктеуінен, кейіпкерлерді бағалауынан және негізгі идеяны жеткізуінен көрінеді.",
+        keywords: ["субъективті", "көзқарас", "7"]
+      },
+      {
+        id: 8,
+        question: "8. Фемида кім және ол нені білдіреді?",
+        answer: "Фемида — ежелгі грек мифологиясындағы әділ қазылықтың символы.",
+        keywords: ["фемида", "грек", "8"]
+      },
+      {
+        id: 9,
+        question: "9. Фемиданың көзіндегі таңғыш нені білдіреді?",
+        answer: "Таңғыш адамдардың бет-жүзіне, дәрежесіне қарамай, бәріне бірдей қарауды білдіреді.",
+        keywords: ["таңғыш", "көз", "9"]
+      },
+      {
+        id: 10,
+        question: "10. Фемиданың таразысы мен семсері нені білдіреді?",
+        answer: "Таразы — әділ бағалау мен өлшеудің, ал семсер — әділ шешімнің орындалуы мен жазаның символы.",
+        keywords: ["таразы", "семсер", "10"]
+      },
+      {
+        id: 11,
+        question: "11. Фемида мысалындағы мазмұн мен пішін?",
+        answer: "Мазмұн — әділ қазылық ұғымы. Пішін — Фемиданың бейнесі және оның қолындағы таңғыш, таразы мен семсер сияқты белгілер.",
+        keywords: ["фемида мысалы", "ажыратыңыз", "11"]
+      },
+      {
+        id: 12,
+        question: "12. Мазмұн күрделенген сайын пішін қандай болуы керек?",
+        answer: "Мазмұн күрделенген сайын оны толық әрі әсерлі жеткізетін пішін де бай, алуан түрлі болуы керек.",
+        keywords: ["күрделенген сайын", "12"]
+      },
+      {
+        id: 13,
+        question: "13. Сюжет пен кейіпкерлер тілі қандай қызмет атқарады?",
+        answer: "Сюжет оқиғалардың дамуын көрсетіп, шығарманың идеясын ашуға көмектеседі. Кейіпкерлердің тілі олардың мінезін, көзқарасын және дара ерекшелігін танытады.",
+        keywords: ["сюжет", "кейіпкерлер тілі", "қызмет", "13"]
+      },
+      {
+        id: 14,
+        question: "14. Өнердегі мазмұн мен пішіннің басты ерекшелігі қандай?",
+        answer: "Олардың басты ерекшелігі — образдылық. Өнер өмір шындығын көркем образдар, кейіпкерлер, оқиғалар мен тіл арқылы бейнелейді.",
+        keywords: ["образдылық", "басты ерекшелігі", "14"]
+      }
+    ];
+
+    const chatArea = document.getElementById("chatArea");
+    const grid = document.getElementById("questionsGrid");
+    const typing = document.getElementById("typingIndicator");
+    const input = document.getElementById("userInput");
+
+    function timeNow() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    document.getElementById("initTime").innerText = timeNow();
+
+    // Render Question Buttons
+    function initButtons() {
+      grid.innerHTML = "";
+      qaList.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "question-btn";
+        btn.innerHTML = `<span class="q-badge">${item.id}</span> <span>${item.question.replace(/^\d+\.\s*/, '')}</span>`;
+        btn.onclick = () => selectQuestion(item);
+        grid.appendChild(btn);
+      });
+    }
+
+    function scrollChat() {
+      setTimeout(() => {
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }, 40);
+    }
+
+    function selectQuestion(item) {
+      appendUserMsg(item.question);
+      botReply(item.answer, item.id);
+    }
+
+    function appendUserMsg(text) {
+      const msg = document.createElement("div");
+      msg.className = "message user";
+      msg.innerHTML = `
+        <div class="msg-icon">👤</div>
+        <div class="msg-body">
+          ${text}
+          <span class="msg-time">${timeNow()}</span>
+        </div>
+      `;
+      chatArea.appendChild(msg);
+      scrollChat();
+    }
+
+    function appendBotMsg(text, qId = null) {
+      const msg = document.createElement("div");
+      msg.className = "message bot";
+      
+      const copyHtml = `<div class="copy-pill" onclick="copyText(this, \`${text.replace(/`/g, '\\`')}\`)">📋 Жауапты көшіру</div>`;
+
+      msg.innerHTML = `
+        <div class="msg-icon">🤖</div>
+        <div class="msg-body">
+          ${qId ? `<strong>${qId}-сұрақ бойынша жауап:</strong><br><br>` : ''}
+          ${text}
+          <div>${copyHtml}</div>
+          <span class="msg-time">${timeNow()}</span>
+        </div>
+      `;
+      chatArea.appendChild(msg);
+      scrollChat();
+    }
+
+    function botReply(answerText, qId) {
+      typing.style.display = "flex";
+      chatArea.appendChild(typing);
+      scrollChat();
+
+      setTimeout(() => {
+        typing.style.display = "none";
+        appendBotMsg(answerText, qId);
+      }, 400);
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (!val) return;
+
+      appendUserMsg(val);
+      input.value = "";
+
+      const lower = val.toLowerCase();
+      const digit = lower.match(/\d+/);
+
+      let found = null;
+      if (digit) {
+        const id = parseInt(digit[0]);
+        found = qaList.find(q => q.id === id);
+      }
+
+      if (!found) {
+        found = qaList.find(q => {
+          return q.keywords.some(k => lower.includes(k.toLowerCase())) || 
+                 q.question.toLowerCase().includes(lower);
+        });
+      }
+
+      if (found) {
+        botReply(found.answer, found.id);
+      } else {
+        botReply("Кешіріңіз, сұрағыңыз табылмады. Төмендегі 1-ден 14-ке дейінгі дайын сұрақ батырмаларын басып көріңіз!");
+      }
+    }
+
+    function copyText(el, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = el.innerHTML;
+        el.innerHTML = "✅ Көшірілді!";
+        setTimeout(() => el.innerHTML = orig, 1500);
+      });
+    }
+
+    function resetChat() {
+      chatArea.innerHTML = `
+        <div class="message bot">
+          <div class="msg-icon">🤖</div>
+          <div class="msg-body">
+            <strong>Чат тазартылды! 🔄</strong><br><br>
+            Қай сұрақтың жауабы қажет? Төмендегі батырмалардың бірін басыңыз.
+            <span class="msg-time">${timeNow()}</span>
+          </div>
+        </div>
+      `;
+      input.value = "";
+    }
+
+    // Run
+    initButtons();
+  </script>
+</body>
+</html>
